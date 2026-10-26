@@ -6,14 +6,19 @@ dashboard pages. (Phase 7 adds the versioned fact queries for the review pack he
 
 from __future__ import annotations
 
+import hashlib
 import json
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from sqlalchemy import Engine, text
+from sqlalchemy.exc import SQLAlchemyError
 
+from sca.config import PROJECT_ROOT
 from sca.viz import PALETTE, save_fig
 
 STAR_TABLES = [
@@ -393,3 +398,217 @@ def reconciliation_markdown(tables: dict[str, pd.DataFrame]) -> str:
         "",
     ]
     return "\n".join(lines)
+
+
+# --------------------------------------------------------------------------- facts for the review pack
+
+FACTS_VERSION = "1"
+QUERY_DIR = PROJECT_ROOT / "sql" / "sqlserver" / "kpi_queries"
+MIN_MODE_ORDERS = 20  # a shipping mode needs this many orders in the month to get a late-% fact
+MATERIAL_CATEGORY_SHARE = 0.01  # categories under 1% of the month's revenue are ignored when ranking margin
+
+
+@dataclass
+class Fact:
+    """One number the review pack may cite. Metric names carry no digits so text checks stay unambiguous."""
+
+    id: str
+    metric: str
+    value: float
+    unit: str
+    period: str
+    comparison_value: float | None = None
+    comparison_period: str | None = None
+    delta: float | None = None
+    delta_unit: str | None = None
+    source_query: str = ""
+
+
+def query_checksum() -> str:
+    """Hash of every fact query, recorded in facts.json so a pack can be tied to the exact SQL used."""
+    h = hashlib.sha256()
+    for path in sorted(QUERY_DIR.glob("q*.sql")):
+        h.update(path.read_bytes().replace(b"\r\n", b"\n"))
+    return h.hexdigest()[:16]
+
+
+def run_query(engine: Engine, name: str, **params) -> pd.DataFrame | None:
+    """Run one fact query; None if its tables do not exist yet (an earlier stage has not run)."""
+    sql = (QUERY_DIR / f"{name}.sql").read_text(encoding="utf-8")
+    try:
+        with engine.connect() as conn:
+            return pd.read_sql(text(sql), conn, params=params)
+    except (SQLAlchemyError, pd.errors.DatabaseError):
+        return None
+
+
+def latest_month(engine: Engine) -> str:
+    """Most recent month in vw_kpi_monthly as YYYY-MM-DD (first of the month)."""
+    with engine.connect() as conn:
+        value = conn.execute(text("SELECT MAX(order_month) FROM vw_kpi_monthly")).scalar_one()
+    return str(pd.Timestamp(value).date())
+
+
+def _pct_change(new: float, old: float | None) -> float | None:
+    return None if old is None or pd.isna(old) or old == 0 else round(100 * (new - old) / old, 2)
+
+
+def build_facts(engine: Engine, month: str) -> dict:
+    """Run the fixed query set for ``month`` (first of the month) and return the facts document."""
+    m = pd.Timestamp(month)
+    prev_ts = m - pd.offsets.MonthBegin(1)
+    params = {
+        "month": m.date().isoformat(),
+        "prev_month": prev_ts.date().isoformat(),
+        "base_start": (m - pd.offsets.MonthBegin(12)).date().isoformat(),
+    }
+    cur_label, prev_label = f"{m:%Y-%m}", f"{prev_ts:%Y-%m}"
+    facts: list[Fact] = []
+    unavailable: list[str] = []
+
+    def add(metric, value, unit, period, source, comp=None, comp_period=None, delta=None, delta_unit=None):
+        def clean(x, digits):
+            return None if x is None or pd.isna(x) else round(float(x), digits)
+
+        facts.append(
+            Fact(
+                f"F{len(facts) + 1}",
+                metric,
+                round(float(value), 4),
+                unit,
+                period,
+                clean(comp, 4),
+                comp_period,
+                clean(delta, 2),
+                delta_unit,
+                source,
+            )  # fmt: skip
+        )
+
+    q1 = run_query(engine, "q01_kpi_month", **params)
+    if q1 is None or q1.empty:
+        raise ValueError(f"no KPI data for month {cur_label}")
+    q1["order_month"] = pd.to_datetime(q1["order_month"])
+    now_rows = q1[q1["order_month"] == m]
+    if now_rows.empty:
+        raise ValueError(f"no KPI data for month {cur_label}")
+    now = now_rows.iloc[0]
+    old_rows = q1[q1["order_month"] == prev_ts]
+    old = old_rows.iloc[0] if len(old_rows) else None
+
+    def prev_val(col):
+        return None if old is None else float(old[col])
+
+    def pp(col):
+        return None if old is None else float(now[col]) - float(old[col])
+
+    q2 = run_query(engine, "q02_kpi_baseline", **params)
+    base = q2.iloc[0] if q2 is not None and len(q2) and int(q2["months"].iloc[0] or 0) > 0 else None
+    src = "q01_kpi_month"
+    add("Revenue", now["revenue"], "USD", cur_label, src, prev_val("revenue"), prev_label,
+        _pct_change(now["revenue"], prev_val("revenue")), "%")  # fmt: skip
+    if base is not None:
+        add("Revenue versus the trailing-year monthly average", now["revenue"], "USD", cur_label, "q02_kpi_baseline",
+            base["revenue_avg"], f"average of {int(base['months'])} months to {prev_label}",
+            _pct_change(now["revenue"], base["revenue_avg"]), "%")  # fmt: skip
+    add("Profit", now["profit"], "USD", cur_label, src, prev_val("profit"), prev_label,
+        _pct_change(now["profit"], prev_val("profit")), "%")  # fmt: skip
+    add("Margin", now["margin_pct"], "%", cur_label, src, prev_val("margin_pct"), prev_label, pp("margin_pct"), "pp")
+    add("Orders", now["orders"], "orders", cur_label, src, prev_val("orders"), prev_label,
+        _pct_change(now["orders"], prev_val("orders")), "%")  # fmt: skip
+    add("On-time delivery", now["on_time_pct"], "%", cur_label, src, prev_val("on_time_pct"), prev_label,
+        pp("on_time_pct"), "pp")  # fmt: skip
+    add("Average order value", now["avg_order_value"], "USD", cur_label, src, prev_val("avg_order_value"), prev_label,
+        _pct_change(now["avg_order_value"], prev_val("avg_order_value")), "%")  # fmt: skip
+
+    q3 = run_query(engine, "q03_delivery_by_mode", **params)
+    if q3 is not None and len(q3):
+        q3["order_month"] = pd.to_datetime(q3["order_month"])
+        cur3 = q3[q3["order_month"] == m].set_index("shipping_mode")
+        prv3 = q3[q3["order_month"] == prev_ts].set_index("shipping_mode")
+        for mode in sorted(cur3.index):
+            row = cur3.loc[mode]
+            if row["orders"] < MIN_MODE_ORDERS:
+                continue
+            late = 100 * row["late_orders"] / row["orders"]
+            prev_late = None
+            if mode in prv3.index and prv3.loc[mode, "orders"] >= MIN_MODE_ORDERS:
+                prev_late = 100 * prv3.loc[mode, "late_orders"] / prv3.loc[mode, "orders"]
+            add(f"Late orders, {mode}", late, "%", cur_label, "q03_delivery_by_mode", prev_late, prev_label,
+                None if prev_late is None else late - prev_late, "pp")  # fmt: skip
+    else:
+        unavailable.append("q03_delivery_by_mode")
+
+    q4 = run_query(engine, "q04_margin_by_category", **params)
+    if q4 is not None and len(q4):
+        q4["margin"] = 100 * q4["profit"] / q4["sales"]
+        total = q4["sales"].sum()
+        top = q4.sort_values("sales", ascending=False).iloc[0]
+        add(f"Share of revenue from the top category, {top['category_name']}", 100 * top["sales"] / total, "%",
+            cur_label, "q04_margin_by_category")  # fmt: skip
+        material = q4[q4["sales"] >= MATERIAL_CATEGORY_SHARE * total].sort_values("margin")
+        if len(material):
+            low = material.iloc[0]
+            add(f"Margin of the lowest-margin material category, {low['category_name']}", low["margin"], "%",
+                cur_label, "q04_margin_by_category", now["margin_pct"], "overall margin",
+                low["margin"] - now["margin_pct"], "pp")  # fmt: skip
+    else:
+        unavailable.append("q04_margin_by_category")
+
+    q5 = run_query(engine, "q05_forecast_summary")
+    if q5 is not None and len(q5) and pd.notna(q5["forecast_units"].iloc[0]):
+        r = q5.iloc[0]
+        add("Forecast horizon", r["forecast_weeks"], "weeks", "forecast", "q05_forecast_summary")
+        add("Forecast total demand over the horizon", r["forecast_units"], "units", "forecast", "q05_forecast_summary")
+        add("Forecast backtest error (WAPE)", 100 * r["abs_error"] / r["backtest_actual"], "%", "backtest",
+            "q05_forecast_summary")  # fmt: skip
+    else:
+        unavailable.append("q05_forecast_summary")
+
+    q6 = run_query(engine, "q06_risk_summary")
+    if q6 is not None and len(q6) and q6["orders"].iloc[0] and q6["flagged"].iloc[0]:
+        r = q6.iloc[0]
+        add(
+            "Test orders flagged as likely late",
+            100 * r["flagged"] / r["orders"],
+            "%",
+            "test period",
+            "q06_risk_summary",
+        )
+        add("Alert precision", 100 * r["true_positives"] / r["flagged"], "%", "test period", "q06_risk_summary")
+        add("Alert recall", 100 * r["true_positives"] / r["late"], "%", "test period", "q06_risk_summary")
+    else:
+        unavailable.append("q06_risk_summary")
+
+    q7 = run_query(engine, "q07_top_drivers")
+    if q7 is not None and len(q7):
+        for _, r in q7.head(3).iterrows():
+            add(f"Share of late-delivery model attribution, {r['feature']}", 100 * r["share"], "%", "test period",
+                "q07_top_drivers")  # fmt: skip
+    else:
+        unavailable.append("q07_top_drivers")
+
+    q8 = run_query(engine, "q08_simulation_summary")
+    if q8 is not None and len(q8) and pd.notna(q8["cost_from"].iloc[0]):
+        r = q8.iloc[0]
+        add("Holding cost increase for the higher simulated service target", 100 * (r["cost_to"] / r["cost_from"] - 1),
+            "%", "simulation", "q08_simulation_summary", r["cost_from"], "lower service target (USD per year)")  # fmt: skip
+    else:
+        unavailable.append("q08_simulation_summary")
+
+    return {
+        "version": FACTS_VERSION,
+        "period": cur_label,
+        "comparison_period": prev_label,
+        "query_checksum": query_checksum(),
+        "unavailable_queries": unavailable,
+        "facts": [asdict(f) for f in facts],
+    }
+
+
+def write_facts(doc: dict, out_dir: Path) -> Path:
+    """Write ``review_YYYY-MM.facts.json``."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    path = out_dir / f"review_{doc['period']}.facts.json"
+    path.write_text(json.dumps(doc, indent=2), encoding="utf-8")
+    return path

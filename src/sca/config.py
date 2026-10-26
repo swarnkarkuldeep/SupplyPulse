@@ -194,3 +194,7 @@ def load_config(path: str | Path | None = None) -> Config:
 def get_env() -> Env:
     """Return the cached environment settings."""
     return Env(_env_file=PROJECT_ROOT / ".env")
+
+
+class ConfigError(RuntimeError):
+    """A setting is missing or inconsistent (for example an API key without its model name)."""

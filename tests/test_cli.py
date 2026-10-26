@@ -1,4 +1,3 @@
-import pytest
 from typer.testing import CliRunner
 
 from sca import pipeline
@@ -6,39 +5,26 @@ from sca.cli import STAGES, app
 
 runner = CliRunner()
 COMMANDS = [name for name, _, _ in STAGES] + ["all"]
-STUBS = [name for name, _, _ in STAGES if name not in pipeline.IMPLEMENTED]
+SPEC_COMMANDS = {"ingest", "quality", "load", "eda", "forecast", "risk", "simulate", "kpis", "review-pack", "all"}
 
 
 def test_all_spec_commands_registered():
-    expected = {
-        "ingest",
-        "quality",
-        "load",
-        "eda",
-        "forecast",
-        "risk",
-        "simulate",
-        "kpis",
-        "review-pack",
-        "all",
-    }
-    assert expected <= set(COMMANDS)
-    registered = {c.name for c in app.registered_commands}
-    assert expected <= registered
+    assert SPEC_COMMANDS <= set(COMMANDS)
+    assert SPEC_COMMANDS <= {c.name for c in app.registered_commands}
 
 
-@pytest.mark.parametrize("command", STUBS)
-def test_unimplemented_stage_fails_loudly(command):
-    result = runner.invoke(app, [command, "--sample"])
-    assert result.exit_code == 2
+def test_every_stage_is_implemented():
+    assert {name for name, _, _ in STAGES} == set(pipeline.IMPLEMENTED)
 
 
-def test_phase_1_stages_are_implemented():
-    assert {"ingest", "quality", "load"} <= set(pipeline.IMPLEMENTED)
-
-
-def test_all_sample_runs_end_to_end_and_lists_skipped_stages():
-    result = runner.invoke(app, ["all", "--sample"])
+def test_all_sample_runs_every_stage_end_to_end_without_keys():
+    result = runner.invoke(app, ["all", "--sample", "--no-llm"])
     assert result.exit_code == 0, result.output
-    assert "ingest:" in result.output and "load:" in result.output
-    assert "SKIPPED" in result.output and "not implemented" in result.output
+    for name, _, _ in STAGES:
+        assert f"{name}:" in result.output, name
+    assert "SKIPPED" not in result.output and "not implemented" not in result.output
+
+
+def test_help_lists_the_review_pack_options():
+    result = runner.invoke(app, ["review-pack", "--help"])
+    assert result.exit_code == 0 and "--no-llm" in result.output and "--month" in result.output

@@ -24,9 +24,11 @@ class Context:
     paths: RunPaths
     sample: bool
     env: Env
+    month: str | None = None
+    no_llm: bool = False
 
 
-def make_context(sample: bool, config_path: str | None) -> Context:
+def make_context(sample: bool, config_path: str | None, month: str | None = None, no_llm: bool = False) -> Context:
     """Build the run context. Sample runs always use a separate SQLite database."""
     cfg = load_config(config_path)
     env = get_env()
@@ -38,7 +40,7 @@ def make_context(sample: bool, config_path: str | None) -> Context:
                 "sqlite_path": f"{cfg.paths.processed_dir}/sample/sca_sample.db",
             }
         )
-    return Context(cfg, run_paths(cfg, sample), sample, env)
+    return Context(cfg, run_paths(cfg, sample), sample, env, month, no_llm)
 
 
 def stage_ingest(ctx: Context) -> str:
@@ -165,6 +167,20 @@ def stage_kpis(ctx: Context) -> str:
     return f"{len(counts)} tables exported to {dash_dir.name}/, {len(pages)} dashboard pages drawn"
 
 
+def stage_review_pack(ctx: Context) -> str:
+    """Query the facts for a month, draft the review (LLM or template), validate and write the pack."""
+    from sca import kpis, review_pack
+
+    engine = get_engine(ctx.env)
+    month = f"{ctx.month}-01" if ctx.month else kpis.latest_month(engine)
+    doc = kpis.build_facts(engine, month)
+    clients = [] if ctx.no_llm else review_pack.build_clients(ctx.env)
+    result = review_pack.generate_review(doc, clients, no_llm=ctx.no_llm)
+    path = review_pack.write_pack(result, doc, ctx.paths.reports_dir / "review_packs")
+    how = f"{result.mode} ({result.provider})" if result.provider else f"{result.mode}: {result.reason}"
+    return f"{path.name} written from {len(doc['facts'])} facts, {how}"
+
+
 # command -> function. Commands missing here are still stubs (see cli.STAGES).
 IMPLEMENTED: dict[str, Callable[[Context], str]] = {
     "ingest": stage_ingest,
@@ -175,4 +191,5 @@ IMPLEMENTED: dict[str, Callable[[Context], str]] = {
     "risk": stage_risk,
     "simulate": stage_simulate,
     "kpis": stage_kpis,
+    "review-pack": stage_review_pack,
 }
