@@ -113,9 +113,11 @@ def results_cmd() -> None:
     typer.echo(f"results: RESULTS.md and README.md written ({len(v)} numbers collected)")
 
 
-@app.command(name="site", help="Write site/data.js (the demo page's data) from the outputs of a full run.")
+@app.command(
+    name="site", help="Write frontend/src/data/data.json (the demo app's data) from the outputs of a full run."
+)
 def site_cmd() -> None:
-    """Collect the real pipeline outputs into site/data.js; open site/index.html to demo them."""
+    """Collect the real pipeline outputs into the React app's data file."""
     from sca import site
 
     try:
@@ -124,7 +126,7 @@ def site_cmd() -> None:
         typer.secho(f"Missing output: {exc}. Run `python -m sca all` on the full data first.", err=True)
         raise typer.Exit(code=1) from exc
     path = site.write_data(data)
-    typer.echo(f"site: {path} written ({path.stat().st_size // 1024} KB); open site/index.html")
+    typer.echo(f"site: {path} written ({path.stat().st_size // 1024} KB); run `npm run dev` in frontend/")
 
 
 @app.command(name="make-sample", help="Write data/sample/ from the full raw file (maintainers).")

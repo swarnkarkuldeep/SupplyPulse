@@ -1,7 +1,7 @@
-"""Data for the demo site (``site/``): every number the page shows is read from the outputs of a real run.
+"""Data for the demo frontend (``frontend/``): every number the page shows is read from the outputs of a real run.
 
-``build_data`` collects the pipeline outputs into one JSON-safe dict, ``write_data`` saves it as ``site/data.js``
-(``window.SCA_DATA = ...``) so ``site/index.html`` opens by double-click, with no server and no network.
+``build_data`` collects the pipeline outputs into one JSON-safe dict and ``write_data`` saves it as
+``frontend/src/data/data.json``, which the React app imports at build time.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ from sca import risk_model as rm
 from sca.config import PROJECT_ROOT, load_config
 from sca.ingest import read_processed
 
-SITE_DIR = PROJECT_ROOT / "site"
+DATA_DIR = PROJECT_ROOT / "frontend" / "src" / "data"
 SHAP_TOP = 8
 
 
@@ -186,12 +186,11 @@ def build_data(processed: Path | None = None, reports: Path | None = None) -> di
     }
 
 
-def write_data(data: dict, site_dir: Path | None = None) -> Path:
-    """Write ``data.js`` next to ``index.html`` (a script tag works from file://, a fetch of JSON does not)."""
-    site_dir = site_dir or SITE_DIR
-    site_dir.mkdir(parents=True, exist_ok=True)
-    path = site_dir / "data.js"
-    path.write_text(
-        "window.SCA_DATA = " + json.dumps(clean(data), separators=(",", ":"), allow_nan=False) + ";\n", encoding="utf-8"
-    )
+def write_data(data: dict, data_dir: Path | None = None) -> Path:
+    """Write ``data.json`` where the React app imports it from."""
+    data_dir = data_dir or DATA_DIR
+    data_dir.mkdir(parents=True, exist_ok=True)
+    path = data_dir / "data.json"
+    text = json.dumps(clean(data), separators=(",", ":"), allow_nan=False)
+    path.write_text(text + "\n", encoding="utf-8")
     return path

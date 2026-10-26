@@ -2,14 +2,14 @@
 
 @font-face {
   font-family: "Archivo";
-  src: url("fonts/archivo.woff2") format("woff2");
+  src: url("./assets/fonts/archivo.woff2") format("woff2");
   font-weight: 100 900;
   font-stretch: 62% 125%;
   font-display: swap;
 }
 @font-face {
   font-family: "Source Serif 4";
-  src: url("fonts/source-serif-4.woff2") format("woff2");
+  src: url("./assets/fonts/source-serif-4.woff2") format("woff2");
   font-weight: 400 700;
   font-display: swap;
 }
@@ -251,3 +251,9 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 24px; background: v
   .bar-label { grid-column: 1 / -1; }
   .figs.stack { grid-template-columns: 1fr 1fr; }
 }
+
+/* chart extras used by the React LineChart */
+.chart text.strong { font-weight: 700; fill: var(--ink); }
+.chart .lg { display: flex; gap: 18px; flex-wrap: wrap; padding: 6px 8px 8px; font-size: 13px; font-weight: 600; }
+.chart .swatch { display: inline-block; width: 18px; height: 0; vertical-align: middle; margin-right: 6px; }
+.chart .swatch.band { width: 14px; height: 12px; opacity: 0.3; }
