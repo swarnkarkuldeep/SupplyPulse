@@ -1,1 +1,1 @@
-﻿"""profitability (implemented in a later phase)."""
+"""profitability (implemented in a later phase)."""

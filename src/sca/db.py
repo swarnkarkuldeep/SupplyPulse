@@ -56,6 +56,21 @@ def get_engine(env: Env | None = None) -> Engine:
     return create_engine(url, fast_executemany=True)
 
 
+def ensure_database(env: Env) -> None:
+    """Create the target database on a local SQL Server if it is missing.
+
+    Azure SQL databases are provisioned in the portal, so this only acts on backend 'sqlserver'.
+    """
+    if env.db_backend != "sqlserver" or env.database_url:
+        return
+    master = create_engine(
+        build_url(env.model_copy(update={"db_name": "master"})), isolation_level="AUTOCOMMIT"
+    )
+    with master.connect() as conn:
+        conn.exec_driver_sql(f"IF DB_ID(N'{env.db_name}') IS NULL CREATE DATABASE [{env.db_name}]")
+    master.dispose()
+
+
 def dialect_dir(engine: Engine) -> str:
     """Name of the sql/ subfolder holding dialect-specific files for this engine."""
     return "sqlite" if engine.dialect.name == "sqlite" else "sqlserver"

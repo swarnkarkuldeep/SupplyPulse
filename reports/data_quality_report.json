@@ -1,0 +1,487 @@
+{
+  "n_checks": 47,
+  "n_error_checks": 38,
+  "n_warn_checks": 9,
+  "failing_errors": 0,
+  "failing_warnings": 2,
+  "checks": [
+    {
+      "name": "pk_unique__dim_category",
+      "description": "`category_key` is unique and not null in dim_category",
+      "severity": "error",
+      "table": "dim_category",
+      "total_rows": 51,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "pk_unique__dim_product",
+      "description": "`product_key` is unique and not null in dim_product",
+      "severity": "error",
+      "table": "dim_product",
+      "total_rows": 118,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "pk_unique__dim_customer",
+      "description": "`customer_key` is unique and not null in dim_customer",
+      "severity": "error",
+      "table": "dim_customer",
+      "total_rows": 20652,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "pk_unique__dim_geography",
+      "description": "`geography_key` is unique and not null in dim_geography",
+      "severity": "error",
+      "table": "dim_geography",
+      "total_rows": 167,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "pk_unique__dim_shipping_mode",
+      "description": "`shipping_mode_key` is unique and not null in dim_shipping_mode",
+      "severity": "error",
+      "table": "dim_shipping_mode",
+      "total_rows": 4,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "pk_unique__dim_date",
+      "description": "`date_key` is unique and not null in dim_date",
+      "severity": "error",
+      "table": "dim_date",
+      "total_rows": 1461,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "pk_unique__fact_order_items",
+      "description": "`order_item_id` is unique and not null in fact_order_items",
+      "severity": "error",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "natural_key_unique__dim_category",
+      "description": "Natural key (category_id) is unique in dim_category",
+      "severity": "error",
+      "table": "dim_category",
+      "total_rows": 51,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "natural_key_unique__dim_product",
+      "description": "Natural key (product_card_id) is unique in dim_product",
+      "severity": "error",
+      "table": "dim_product",
+      "total_rows": 118,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "natural_key_unique__dim_customer",
+      "description": "Natural key (customer_id) is unique in dim_customer",
+      "severity": "error",
+      "table": "dim_customer",
+      "total_rows": 20652,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "natural_key_unique__dim_geography",
+      "description": "Natural key (market, region, country) is unique in dim_geography",
+      "severity": "error",
+      "table": "dim_geography",
+      "total_rows": 167,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "natural_key_unique__dim_shipping_mode",
+      "description": "Natural key (shipping_mode) is unique in dim_shipping_mode",
+      "severity": "error",
+      "table": "dim_shipping_mode",
+      "total_rows": 4,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "label_unique__dim_category.category_name",
+      "description": "`category_name` identifies exactly one row of dim_category (needed to forecast by name)",
+      "severity": "error",
+      "table": "dim_category",
+      "total_rows": 51,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "label_unique__dim_product.product_name",
+      "description": "`product_name` identifies exactly one row of dim_product (needed to forecast by name)",
+      "severity": "error",
+      "table": "dim_product",
+      "total_rows": 118,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "not_null__dim_category",
+      "description": "No nulls in critical columns of dim_category: category_key, category_id, category_name, department_name",
+      "severity": "error",
+      "table": "dim_category",
+      "total_rows": 51,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "not_null__dim_product",
+      "description": "No nulls in critical columns of dim_product: product_key, product_card_id, product_name, category_key",
+      "severity": "error",
+      "table": "dim_product",
+      "total_rows": 118,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "not_null__dim_customer",
+      "description": "No nulls in critical columns of dim_customer: customer_key, customer_id, segment",
+      "severity": "error",
+      "table": "dim_customer",
+      "total_rows": 20652,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "not_null__dim_geography",
+      "description": "No nulls in critical columns of dim_geography: geography_key, market, region, country",
+      "severity": "error",
+      "table": "dim_geography",
+      "total_rows": 167,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "not_null__dim_shipping_mode",
+      "description": "No nulls in critical columns of dim_shipping_mode: shipping_mode_key, shipping_mode, scheduled_days",
+      "severity": "error",
+      "table": "dim_shipping_mode",
+      "total_rows": 4,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "not_null__dim_date",
+      "description": "No nulls in critical columns of dim_date: date_key, date",
+      "severity": "error",
+      "table": "dim_date",
+      "total_rows": 1461,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "not_null__fact_order_items",
+      "description": "No nulls in critical columns of fact_order_items: order_item_id, order_id, order_ts, ship_ts, order_date_key, ship_date_key, customer_key, product_key, category_key, geography_key, shipping_mode_key, quantity, unit_price, discount_rate, gross_sales, net_sales, profit, shipping_days_real, shipping_days_scheduled, late_delivery_risk, is_valid_order",
+      "severity": "error",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "fk__fact_order_items.customer_key->dim_customer",
+      "description": "Every fact_order_items.customer_key exists in dim_customer",
+      "severity": "error",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "fk__fact_order_items.product_key->dim_product",
+      "description": "Every fact_order_items.product_key exists in dim_product",
+      "severity": "error",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "fk__fact_order_items.category_key->dim_category",
+      "description": "Every fact_order_items.category_key exists in dim_category",
+      "severity": "error",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "fk__fact_order_items.geography_key->dim_geography",
+      "description": "Every fact_order_items.geography_key exists in dim_geography",
+      "severity": "error",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "fk__fact_order_items.shipping_mode_key->dim_shipping_mode",
+      "description": "Every fact_order_items.shipping_mode_key exists in dim_shipping_mode",
+      "severity": "error",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "fk__fact_order_items.order_date_key->dim_date",
+      "description": "Every fact_order_items.order_date_key exists in dim_date",
+      "severity": "error",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "fk__fact_order_items.ship_date_key->dim_date",
+      "description": "Every fact_order_items.ship_date_key exists in dim_date",
+      "severity": "error",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "fk__dim_product.category_key->dim_category",
+      "description": "Every dim_product.category_key exists in dim_category",
+      "severity": "error",
+      "table": "dim_product",
+      "total_rows": 118,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "quantity_positive",
+      "description": "quantity > 0",
+      "severity": "error",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "discount_rate_in_0_1",
+      "description": "0 <= discount_rate <= 1",
+      "severity": "error",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "prices_non_negative",
+      "description": "unit_price, gross_sales, net_sales and discount_amount are >= 0",
+      "severity": "error",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "ship_not_before_order",
+      "description": "ship_ts >= order_ts",
+      "severity": "error",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "recon_gross_sales",
+      "description": "gross_sales = unit_price x quantity (tolerance 0.02)",
+      "severity": "error",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "recon_net_sales",
+      "description": "net_sales = gross_sales - discount_amount (tolerance 0.02)",
+      "severity": "error",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "recon_discount_rate",
+      "description": "discount_amount = discount_rate x gross_sales (rate is rounded to 2 decimals)",
+      "severity": "warn",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "recon_profit_ratio",
+      "description": "profit_ratio = profit / net_sales (within 0.01)",
+      "severity": "warn",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "shipping_days_match_dates",
+      "description": "shipping_days_real is within 1 day of ship_date - order_date",
+      "severity": "warn",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "label_consistency_valid_orders",
+      "description": "late_delivery_risk == (shipping_days_real > shipping_days_scheduled) for valid orders",
+      "severity": "error",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "label_cancelled_orders_unshipped",
+      "description": "Cancelled / fraud orders carry label 0 although real > scheduled days (known source property; delivery analyses exclude these rows)",
+      "severity": "warn",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 4423,
+      "sample_keys": [
+        124,
+        125,
+        168,
+        797,
+        798
+      ],
+      "passed": false
+    },
+    {
+      "name": "no_duplicate_order_items",
+      "description": "No two order items are identical apart from order_item_id",
+      "severity": "error",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "order_level_consistency",
+      "description": "Items of one order share timestamps, customer, destination, ship mode, status and label (needed for order-level modelling)",
+      "severity": "error",
+      "table": "fact_order_items",
+      "total_rows": 180519,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "no_mojibake__dim_category",
+      "description": "No replacement or mis-decoded characters in text columns of dim_category",
+      "severity": "warn",
+      "table": "dim_category",
+      "total_rows": 51,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "no_mojibake__dim_product",
+      "description": "No replacement or mis-decoded characters in text columns of dim_product",
+      "severity": "warn",
+      "table": "dim_product",
+      "total_rows": 118,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "no_mojibake__dim_customer",
+      "description": "No replacement or mis-decoded characters in text columns of dim_customer",
+      "severity": "warn",
+      "table": "dim_customer",
+      "total_rows": 20652,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "no_mojibake__dim_geography",
+      "description": "No replacement or mis-decoded characters in text columns of dim_geography",
+      "severity": "warn",
+      "table": "dim_geography",
+      "total_rows": 167,
+      "failing_rows": 0,
+      "sample_keys": [],
+      "passed": true
+    },
+    {
+      "name": "volume_tail_abnormal",
+      "description": "Weekly order volume has no abnormal tail (an abnormal tail is truncated for forecasting)",
+      "severity": "warn",
+      "table": "fact_order_items",
+      "total_rows": 17,
+      "failing_rows": 17,
+      "sample_keys": [
+        "2017-10-02"
+      ],
+      "passed": false
+    }
+  ]
+}

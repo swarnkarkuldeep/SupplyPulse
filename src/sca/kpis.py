@@ -1,1 +1,1 @@
-﻿"""kpis (implemented in a later phase)."""
+"""kpis (implemented in a later phase)."""

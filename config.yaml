@@ -20,6 +20,9 @@ forecast:
   backtest_folds: 5
   seasonal_period: 52
   interval_level: 0.8
+  tail_baseline_weeks: 26     # tail detection: baseline window in weeks
+  tail_drop_ratio: 0.6        # a week below 60% of the baseline median (and all later weeks) is the tail
+  cutoff_override: null       # "YYYY-MM-DD" to force the last usable date instead of auto-detecting
 
 risk:
   test_fraction: 0.2          # time-based: most recent orders

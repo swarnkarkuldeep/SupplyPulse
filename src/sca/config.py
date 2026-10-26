@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -11,6 +12,7 @@ from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+SAMPLE_FILE = "sample_orders.csv"
 
 
 class Env(BaseSettings):
@@ -56,6 +58,11 @@ class ForecastCfg(BaseModel):
     backtest_folds: int = 5
     seasonal_period: int = 52
     interval_level: float = 0.8
+    # Abnormal-tail detection (section 4 of the spec): a week is abnormal when it is below
+    # drop_ratio x the median of the previous baseline_weeks and all later weeks are too.
+    tail_baseline_weeks: int = 26
+    tail_drop_ratio: float = 0.6
+    cutoff_override: str | None = None  # "YYYY-MM-DD" to force the last usable date
 
 
 class RiskCfg(BaseModel):
@@ -93,6 +100,35 @@ class Config(BaseModel):
     def resolve(self, relative: str) -> Path:
         """Resolve a project-relative path against the repo root."""
         return PROJECT_ROOT / relative
+
+
+@dataclass(frozen=True)
+class RunPaths:
+    """Where one pipeline run reads and writes. Sample runs never touch full-data outputs."""
+
+    raw_file: Path
+    processed_dir: Path
+    reports_dir: Path
+
+    @property
+    def figures_dir(self) -> Path:
+        return self.reports_dir / "figures"
+
+
+def run_paths(cfg: Config, sample: bool = False) -> RunPaths:
+    """Resolve input/output locations for a full or --sample run."""
+    if sample:
+        processed = cfg.resolve(cfg.paths.processed_dir) / "sample"
+        return RunPaths(
+            raw_file=cfg.resolve(cfg.paths.sample_dir) / SAMPLE_FILE,
+            processed_dir=processed,
+            reports_dir=processed / "reports",
+        )
+    return RunPaths(
+        raw_file=cfg.resolve(cfg.paths.raw_dir) / cfg.paths.raw_file,
+        processed_dir=cfg.resolve(cfg.paths.processed_dir),
+        reports_dir=cfg.resolve(cfg.paths.reports_dir),
+    )
 
 
 def load_config(path: str | Path | None = None) -> Config:
