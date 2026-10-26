@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "supply-chain-analytics"
+version = "0.1.0"
+description = "Supply chain analytics and demand forecasting for the DataCo dataset"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+    "pandas",
+    "numpy",
+    "pyarrow",
+    "SQLAlchemy>=2.0",
+    "pyodbc",
+    "statsmodels",
+    "prophet",
+    "scikit-learn",
+    "lightgbm",
+    "shap",
+    "matplotlib",
+    "typer",
+    "pydantic-settings",
+    "python-dotenv",
+    "PyYAML",
+    "google-genai",
+    "groq",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "ruff",
+    "types-PyYAML",
+    "jupyter",
+    "ipykernel",
+    "nbconvert",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "W"]

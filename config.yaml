@@ -1,0 +1,40 @@
+# All tunable parameters. Secrets and connection details live in .env, not here.
+seed: 42
+
+paths:
+  raw_dir: data/raw
+  processed_dir: data/processed
+  sample_dir: data/sample
+  reports_dir: reports
+  raw_file: DataCoSupplyChainDataset.csv
+  raw_encoding: latin-1
+
+sample:
+  rows: 2500
+  stratify_by: [market, shipping_mode]
+
+forecast:
+  top_n_categories: 10        # finalised in Phase 3 after checking history and zero weeks
+  horizon_weeks: 8
+  final_horizon_weeks: 12
+  backtest_folds: 5
+  seasonal_period: 52
+  interval_level: 0.8
+
+risk:
+  test_fraction: 0.2          # time-based: most recent orders
+  cost_false_negative: 5.0    # relative cost of missing a late order
+  cost_false_positive: 1.0    # relative cost of a needless intervention
+
+simulation:
+  n_sims: 10000
+  horizon_weeks: 52
+  review_period_weeks: 1
+  lead_time_weeks: [1, 2, 3]  # supplier lead time, not customer shipping days
+  lead_time_probs: [0.3, 0.5, 0.2]
+  holding_cost_pct_per_week: 0.005
+  unit_cost_proxy_pct_of_price: 0.6
+  service_levels: [0.90, 0.95, 0.98, 0.99]
+
+review_pack:
+  top_drivers: 5
