@@ -182,6 +182,13 @@ def test_full_run_from_phase3_outputs(tables, tmp_path):
     c = load_config().model_copy(update={"simulation": cfg(n_sims=300)})
     run = sr.run(c, tables, tmp_path / "proc")
     assert set(run.results["category"]) == set(cats) and len(run.recs) == 2
+    from sca import kpis
+
+    assert set(run.results.columns) == set(kpis.MODEL_TABLE_COLUMNS["fct_simulation_results"])
+    assert set(run.recs.columns) >= set(kpis.MODEL_TABLE_COLUMNS["fct_simulation_recommendations"]) - {
+        "from_stock",
+        "to_stock",
+    }
     paths = RunPaths(tmp_path / "raw.csv", tmp_path / "proc", tmp_path / "rep")
     sr.write_outputs(run, paths)
     md = (paths.reports_dir / "simulation_results.md").read_text(encoding="utf-8")

@@ -263,6 +263,9 @@ def test_full_run_writes_report_tables_and_figures(tmp_path):
     assert (paths.figures_dir / "forecast_03_forecasts.png").exists()
     fct = pd.read_parquet(out / "fct_forecast.parquet")
     assert {"history", "backtest", "forecast"} == set(fct["kind"])
+    from sca import kpis
+
+    assert list(fct.columns) == kpis.MODEL_TABLE_COLUMNS["fct_forecast"]  # the dashboard relies on these
     resid = pd.read_parquet(out / "backtest_residuals.parquet")
     assert set(resid["model"]) == {run.champion}
 

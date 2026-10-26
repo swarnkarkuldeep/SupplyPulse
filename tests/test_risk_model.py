@@ -183,6 +183,10 @@ def test_outputs_written_and_scores_cover_every_order(orders, tmp_path):
     assert set(scores["split"]) == {"train", "validation", "test"}
     assert scores["risk_score"].between(0, 1).all()
     assert out["shap"]["share"].sum() == pytest.approx(1.0)
+    from sca import kpis
+
+    assert list(scores.columns) == kpis.MODEL_TABLE_COLUMNS["fct_late_risk_scores"]
+    assert list(out["shap"].columns) == kpis.MODEL_TABLE_COLUMNS["fct_shap_drivers"]
     md = (paths.reports_dir / "risk_model_results.md").read_text(encoding="utf-8")
     for section in ("Leakage review", "Time-based split", "Threshold sensitivity", "SHAP"):
         assert section in md

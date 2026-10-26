@@ -151,6 +151,20 @@ def stage_simulate(ctx: Context) -> str:
     return f"{len(run.models)} categories x {run.results['safety_stock'].nunique()} stock levels, {run.seconds:.0f}s"
 
 
+def stage_kpis(ctx: Context) -> str:
+    """Export the Power BI tables (Parquet + CSV) and draw the static dashboard pages."""
+    from sca import kpis
+
+    tables = ingest.read_processed(ctx.paths.processed_dir)
+    dash_dir = (ctx.paths.processed_dir / "dashboard") if ctx.sample else ctx.cfg.resolve("dashboard/data")
+    counts = kpis.export_dashboard_data(tables, ctx.paths.processed_dir, dash_dir)
+    recon_dir = ctx.paths.reports_dir.parent if ctx.sample else ctx.cfg.resolve("dashboard")
+    recon_dir.mkdir(parents=True, exist_ok=True)
+    (recon_dir / "reconciliation.md").write_text(kpis.reconciliation_markdown(tables), encoding="utf-8")
+    pages = kpis.build_static_pages(tables, ctx.paths.processed_dir, ctx.paths.figures_dir, _read_tail(ctx))
+    return f"{len(counts)} tables exported to {dash_dir.name}/, {len(pages)} dashboard pages drawn"
+
+
 # command -> function. Commands missing here are still stubs (see cli.STAGES).
 IMPLEMENTED: dict[str, Callable[[Context], str]] = {
     "ingest": stage_ingest,
@@ -160,4 +174,5 @@ IMPLEMENTED: dict[str, Callable[[Context], str]] = {
     "forecast": stage_forecast,
     "risk": stage_risk,
     "simulate": stage_simulate,
+    "kpis": stage_kpis,
 }
