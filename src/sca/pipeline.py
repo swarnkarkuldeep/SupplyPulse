@@ -7,6 +7,8 @@ import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 
+import pandas as pd
+
 from sca import ingest, load, quality
 from sca.config import Config, Env, RunPaths, get_env, load_config, run_paths
 from sca.db import ensure_database, get_engine
@@ -102,7 +104,11 @@ def stage_forecast(ctx: Context) -> str:
         tables["dim_category"][["category_key", "category_name"]], on="category_key"
     )
     items = fact.loc[fact["is_valid_order"] == 1, ["category_name", "order_week", "quantity"]]
-    run = fr.run(ctx.cfg, items, cutoff, ctx.sample, log=print)
+    first = pd.Timestamp(fact["order_week"].min())
+    first_day = pd.to_datetime(tables["dim_date"].set_index("date_key").loc[fact["order_date_key"].min(), "date"])
+    # The first week is usually only partly covered: start at the first Monday on or after day one.
+    first_monday = first_day + pd.Timedelta(days=(7 - first_day.dayofweek) % 7)
+    run = fr.run(ctx.cfg, items, cutoff, ctx.sample, log=print, first_full_week=str(max(first, first_monday).date()))
     fr.write_outputs(run, cutoff, ctx.paths, ctx.sample)
     ensure_database(ctx.env)
     engine = get_engine(ctx.env)

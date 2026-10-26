@@ -265,3 +265,18 @@ def test_full_run_writes_report_tables_and_figures(tmp_path):
     assert {"history", "backtest", "forecast"} == set(fct["kind"])
     resid = pd.read_parquet(out / "backtest_residuals.parquet")
     assert set(resid["model"]) == {run.champion}
+
+
+def test_weekly_matrix_drops_a_partly_covered_first_week():
+    weeks = pd.to_datetime(["2015-12-28", "2016-01-04", "2016-01-11"])
+    items = pd.DataFrame({"category_name": "A", "order_week": weeks, "quantity": [1, 50, 60]})
+    wide = fc.weekly_matrix(items, cutoff=None, first_full_week="2016-01-04")
+    assert wide.index.min() == pd.Timestamp("2016-01-04") and wide["A"].tolist() == [50, 60]
+
+
+def test_report_flags_champion_barely_better_than_moving_average():
+    overall = pd.DataFrame({"model": ["seasonal_naive", "moving_average", "sarima"], "wape": [0.106, 0.083, 0.081]})
+    run_ = type("R", (), {"metrics": {"overall": overall}, "champion": "sarima"})()
+    assert "within backtest noise" in fr._ma_note(run_)
+    overall.loc[1, "wape"] = 0.12
+    assert "by 3.9 percentage points" in fr._ma_note(run_)

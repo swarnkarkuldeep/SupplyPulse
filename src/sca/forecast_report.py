@@ -56,12 +56,19 @@ def effective_config(cfg: Config, sample: bool) -> tuple[list[str], int, Config]
     return fcfg.sample_models, fcfg.sample_folds, cfg.model_copy(update={"forecast": small})
 
 
-def run(cfg: Config, items: pd.DataFrame, cutoff: str | None, sample: bool = False, log=print) -> ForecastRun:
+def run(
+    cfg: Config,
+    items: pd.DataFrame,
+    cutoff: str | None,
+    sample: bool = False,
+    log=print,
+    first_full_week: str | None = None,
+) -> ForecastRun:
     """Select series, backtest every model, pick the champion and produce the final forecast."""
     t0 = time.time()
     models, folds, cfg = effective_config(cfg, sample)
     f = cfg.forecast
-    weekly = fc.weekly_matrix(items, cutoff)
+    weekly = fc.weekly_matrix(items, cutoff, first_full_week)
     cats, selection = fc.select_categories(weekly, f.top_n_categories, f.min_history_weeks, f.max_zero_week_share)
     if not cats:
         raise RuntimeError("no category has enough dense history to forecast; see the selection table")
@@ -168,6 +175,20 @@ def _table(df: pd.DataFrame, fmt: dict[str, str]) -> list[str]:
     for _, r in df.iterrows():
         rows.append("| " + " | ".join(fmt.get(c, "{}").format(r[c]) for c in df.columns) + " |")
     return [head, sep, *rows]
+
+
+def _ma_note(run_: ForecastRun) -> str:
+    """Say plainly when the champion is barely better than the simple moving average."""
+    o = run_.metrics["overall"].set_index("model")
+    if "moving_average" not in o.index or run_.champion == "moving_average":
+        return ""
+    gap = (o.loc["moving_average", "wape"] - o.loc[run_.champion, "wape"]) * 100
+    if gap >= 1.0:
+        return f"It also beats the simple moving average by {gap:.1f} percentage points. "
+    return (
+        f"It beats the simple moving average by only {gap:.1f} percentage points, which is within backtest "
+        "noise: a flat 8-week average is almost as good here. "
+    )
 
 
 def report_markdown(run_: ForecastRun, cfg: Config, cutoff: str | None, sample: bool) -> str:
@@ -296,7 +317,7 @@ def report_markdown(run_: ForecastRun, cfg: Config, cutoff: str | None, sample: 
     lines += [
         "## Champion",
         "",
-        f"**{fc.MODEL_LABELS[run_.champion]}.** {run_.reasoning} The champion is chosen once, for all "
+        f"**{fc.MODEL_LABELS[run_.champion]}.** {run_.reasoning} {_ma_note(run_)}The champion is chosen once, for all "
         "categories, from pooled backtest WAPE. Choosing per category would pick the best of "
         f"{len(run_.models)} models on only {run_.folds * f.horizon_weeks} test weeks each, which overstates accuracy.",
         "",

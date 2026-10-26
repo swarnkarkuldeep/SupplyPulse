@@ -69,7 +69,7 @@ class ForecastCfg(BaseModel):
     )
     sample_models: list[str] = Field(default_factory=lambda: ["seasonal_naive", "moving_average", "lightgbm"])
     sample_folds: int = 2
-    min_history_weeks: int = 104  # a series needs this many weeks before the first backtest origin
+    min_history_weeks: int = 100  # a series needs this many weeks before the first backtest origin
     max_zero_week_share: float = 0.05  # a series with more zero weeks than this is too sparse to forecast
     moving_average_window: int = 8
     sarima_orders: list[list[int]] = Field(

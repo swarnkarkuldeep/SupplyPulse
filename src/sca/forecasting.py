@@ -52,17 +52,20 @@ class Forecast:
 # --------------------------------------------------------------------------- data preparation
 
 
-def weekly_matrix(items: pd.DataFrame, cutoff: str | None) -> pd.DataFrame:
+def weekly_matrix(items: pd.DataFrame, cutoff: str | None, first_full_week: str | None = None) -> pd.DataFrame:
     """Weekly units per category as a wide frame, zero-filled, ending at the last full week <= cutoff.
 
     ``items`` needs ``category_name``, ``order_week`` (Monday) and ``quantity`` for valid items.
-    Adds a TOTAL column. Missing weeks are filled with 0 explicitly.
+    Adds a TOTAL column. Missing weeks are filled with 0 explicitly. Weeks before ``first_full_week``
+    (a Monday) are dropped, because the first week of data is usually only partly covered.
     """
     wide = items.pivot_table(
         index="order_week", columns="category_name", values="quantity", aggfunc="sum", fill_value=0
     )
     weeks = pd.date_range(wide.index.min(), wide.index.max(), freq="7D")
     wide = wide.reindex(weeks, fill_value=0)
+    if first_full_week:
+        wide = wide[wide.index >= pd.Timestamp(first_full_week)]
     if cutoff:
         last_full_week = pd.Timestamp(cutoff).normalize() - pd.Timedelta(days=6)
         wide = wide[wide.index <= last_full_week]

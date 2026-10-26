@@ -26,7 +26,7 @@ forecast:
   models: [seasonal_naive, moving_average, sarima, prophet, lightgbm]
   sample_models: [seasonal_naive, moving_average, lightgbm]   # --sample runs: fast, CI-friendly
   sample_folds: 2
-  min_history_weeks: 104      # weeks needed before the first backtest origin
+  min_history_weeks: 100      # weeks needed before the first backtest origin
   max_zero_week_share: 0.05   # series with more zero weeks than this are too sparse to forecast
   moving_average_window: 8
   sarima_orders: [[0, 0, 0], [1, 0, 0], [1, 0, 1], [0, 1, 1], [1, 1, 1], [2, 1, 0]]  # (p, d, q) grid
