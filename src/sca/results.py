@@ -299,8 +299,8 @@ def results_markdown(v: dict) -> str:
             f"- Built a leakage-guarded late-delivery model (test ROC-AUC {v['roc_auc']:.2f}) and showed that shipping mode alone gets {v['roc_auc_mode_only']:.2f}.",
             f"- Showed by Monte Carlo simulation that textbook safety stock delivers {v['textbook_service_95']:.0%} service against a 95% target once supplier lead times vary.",
             "",
-            "Do not claim: a Power BI report was built (the assets are ready, the `.pbix` is yours to build), or that a "
-            "Gemini or Groq generated review pack exists (see the README limitations).",
+            "Do not claim: a Power BI report was built (the assets are ready, the `.pbix` is yours to build), or that "
+            "every review pack is LLM-written (see the README limitations for which ones are).",
             "",
         ]
     )

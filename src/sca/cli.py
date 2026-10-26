@@ -113,6 +113,20 @@ def results_cmd() -> None:
     typer.echo(f"results: RESULTS.md and README.md written ({len(v)} numbers collected)")
 
 
+@app.command(name="site", help="Write site/data.js (the demo page's data) from the outputs of a full run.")
+def site_cmd() -> None:
+    """Collect the real pipeline outputs into site/data.js; open site/index.html to demo them."""
+    from sca import site
+
+    try:
+        data = site.build_data()
+    except FileNotFoundError as exc:
+        typer.secho(f"Missing output: {exc}. Run `python -m sca all` on the full data first.", err=True)
+        raise typer.Exit(code=1) from exc
+    path = site.write_data(data)
+    typer.echo(f"site: {path} written ({path.stat().st_size // 1024} KB); open site/index.html")
+
+
 @app.command(name="make-sample", help="Write data/sample/ from the full raw file (maintainers).")
 def make_sample(config: ConfigOpt = None) -> None:
     """Create the small committed sample used by tests and CI."""

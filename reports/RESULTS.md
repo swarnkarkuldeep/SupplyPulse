@@ -22,7 +22,7 @@ Every number below was computed by code in this repository and read from the fil
 | Holding cost change | +35% | $36,011 to $48,792 per year across categories (assumed cost and holding rate) | `reports/simulation_results.md` |
 | Textbook safety stock, simulated service at a 95% target | 82.9% | 10,000 paths x 52 weeks with random supplier lead times | `reports/simulation_results.md` |
 | DAX measures | 55 | Measure definitions in the DAX file (tested against the schema) | `dashboard/dax_measures.md` |
-| Tests | 203 | pytest test cases collected | `tests/` |
+| Tests | 208 | pytest test cases collected | `tests/` |
 | Revenue / profit / margin | $31,644,665 / $3,806,421 / 12.0% | Valid orders only | `dashboard/reconciliation.md` |
 | On-time delivery | 42.7% | 62,897 valid orders | `dashboard/reconciliation.md` |
 | Loss-making items | 18.7% | Wipe out 49% of gross profit; 10 products hold 90% of the loss | `reports/eda_findings.md` |
@@ -39,4 +39,4 @@ Quote **WAPE** (8.1% for the champion; MAPE is 8.5%). WAPE weights every unit eq
 - Built a leakage-guarded late-delivery model (test ROC-AUC 0.78) and showed that shipping mode alone gets 0.74.
 - Showed by Monte Carlo simulation that textbook safety stock delivers 83% service against a 95% target once supplier lead times vary.
 
-Do not claim: a Power BI report was built (the assets are ready, the `.pbix` is yours to build), or that a Gemini or Groq generated review pack exists (see the README limitations).
+Do not claim: a Power BI report was built (the assets are ready, the `.pbix` is yours to build), or that every review pack is LLM-written (see the README limitations for which ones are).
