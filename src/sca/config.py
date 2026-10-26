@@ -93,8 +93,26 @@ class ForecastCfg(BaseModel):
 
 class RiskCfg(BaseModel):
     test_fraction: float = 0.2
-    cost_false_negative: float = 5.0
+    cost_false_negative: float = 1.0
     cost_false_positive: float = 1.0
+    cost_ratios: list[float] = Field(default_factory=lambda: [1.0, 2.0, 5.0])
+    min_level_count: int = 50  # categorical levels rarer than this (in the training data) become "OTHER"
+    val_fraction: float = 0.15  # most recent share of the training period, used for early stopping and the threshold
+    shap_sample: int = 5000
+    alarm_auc: float = 0.95  # a test ROC-AUC above this triggers a leakage investigation note
+    logistic_c: float = 1.0
+    lgbm_params: dict = Field(
+        default_factory=lambda: {
+            "n_estimators": 1000,
+            "learning_rate": 0.05,
+            "num_leaves": 31,
+            "min_child_samples": 50,
+            "subsample": 0.8,
+            "subsample_freq": 1,
+            "colsample_bytree": 0.8,
+        }
+    )
+    early_stopping_rounds: int = 50
 
 
 class SimulationCfg(BaseModel):

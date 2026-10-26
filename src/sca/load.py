@@ -103,7 +103,11 @@ def load_tables(engine: Engine, tables: dict[str, pd.DataFrame], root: Path | No
 
 
 # Phase outputs saved as parquet under data/processed, loaded as extra tables when present.
-EXTRA_TABLES = {"fct_forecast": "forecast/fct_forecast.parquet"}
+EXTRA_TABLES = {
+    "fct_forecast": "forecast/fct_forecast.parquet",
+    "fct_late_risk_scores": "risk/fct_late_risk_scores.parquet",
+    "fct_shap_drivers": "risk/fct_shap_drivers.parquet",
+}
 
 
 def load_extra_tables(engine: Engine, processed_dir: Path) -> list[str]:

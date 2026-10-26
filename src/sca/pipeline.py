@@ -119,6 +119,24 @@ def stage_forecast(ctx: Context) -> str:
     )
 
 
+def stage_risk(ctx: Context) -> str:
+    """Train the late-delivery models, explain with SHAP, write reports and database tables."""
+    from sca import risk_model, risk_report
+
+    tables = ingest.read_processed(ctx.paths.processed_dir)
+    orders = risk_model.build_orders(tables)
+    rcfg = ctx.cfg.risk
+    if ctx.sample:  # tiny data: relax the rare-level grouping and shrink SHAP
+        rcfg = rcfg.model_copy(update={"min_level_count": 5, "shap_sample": 500})
+    run = risk_model.train(orders, rcfg, ctx.cfg.seed)
+    out = risk_report.write_outputs(run, ctx.paths, ctx.cfg.seed, ctx.sample)
+    ensure_database(ctx.env)
+    engine = get_engine(ctx.env)
+    out["scores"].to_sql("fct_late_risk_scores", engine, if_exists="replace", index=False, chunksize=20_000)
+    out["shap"].to_sql("fct_shap_drivers", engine, if_exists="replace", index=False)
+    return f"champion {out['champion']}, test ROC-AUC {out['roc_auc']:.3f}, PR-AUC {out['pr_auc']:.3f}"
+
+
 # command -> function. Commands missing here are still stubs (see cli.STAGES).
 IMPLEMENTED: dict[str, Callable[[Context], str]] = {
     "ingest": stage_ingest,
@@ -126,4 +144,5 @@ IMPLEMENTED: dict[str, Callable[[Context], str]] = {
     "load": stage_load,
     "eda": stage_eda,
     "forecast": stage_forecast,
+    "risk": stage_risk,
 }

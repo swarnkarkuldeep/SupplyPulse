@@ -38,8 +38,17 @@ forecast:
 
 risk:
   test_fraction: 0.2          # time-based: most recent orders
-  cost_false_negative: 5.0    # relative cost of missing a late order
+  cost_false_negative: 1.0    # relative cost of missing a late order (see the sensitivity table in the report)
   cost_false_positive: 1.0    # relative cost of a needless intervention
+  cost_ratios: [1.0, 2.0, 5.0]  # miss-vs-false-alarm cost ratios shown in the threshold sensitivity table
+  min_level_count: 50         # categorical levels rarer than this in the training data become OTHER
+  val_fraction: 0.15          # latest share of the training period: early stopping + threshold choice
+  shap_sample: 5000
+  alarm_auc: 0.95             # test ROC-AUC above this triggers a leakage investigation note
+  logistic_c: 1.0
+  early_stopping_rounds: 50
+  lgbm_params: {n_estimators: 1000, learning_rate: 0.05, num_leaves: 31, min_child_samples: 50,
+                subsample: 0.8, subsample_freq: 1, colsample_bytree: 0.8}
 
 simulation:
   n_sims: 10000
