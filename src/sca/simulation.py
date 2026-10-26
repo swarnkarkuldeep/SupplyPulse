@@ -39,14 +39,17 @@ class DemandModel:
 
     @property
     def mu(self) -> float:
+        """Mean weekly demand over the simulated horizon."""
         return float(self.base.mean())
 
     @property
     def sigma(self) -> float:
+        """Standard deviation of the backtest forecast errors."""
         return float(np.std(self.residuals, ddof=1))
 
 
 def mean_lead_time(cfg: SimulationCfg) -> float:
+    """Expected supplier lead time in weeks."""
     return float(np.dot(cfg.lead_time_weeks, cfg.lead_time_probs))
 
 
@@ -236,4 +239,5 @@ def recommendation(res: pd.DataFrame, cfg: SimulationCfg) -> dict:
 
 
 def recommendations(results: pd.DataFrame, cfg: SimulationCfg) -> pd.DataFrame:
+    """One recommendation row per category."""
     return pd.DataFrame([recommendation(g, cfg) for _, g in results.groupby("category", sort=False)])

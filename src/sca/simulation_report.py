@@ -133,6 +133,7 @@ def _md_table(df: pd.DataFrame, fmt: dict[str, str]) -> list[str]:
 
 
 def report_markdown(run_: SimRun) -> str:
+    """Render reports/simulation_results.md."""
     cfg = run_.cfg.simulation
     lbar = sim.mean_lead_time(cfg)
     res = run_.results
@@ -268,6 +269,7 @@ def report_markdown(run_: SimRun) -> str:
 
 
 def write_outputs(run_: SimRun, paths: RunPaths) -> None:
+    """Write charts, parquet exports and the markdown report."""
     chart_tradeoff(run_, paths.figures_dir)
     chart_analytic_vs_simulated(run_, paths.figures_dir)
     out = paths.processed_dir / OUT_SUBDIR

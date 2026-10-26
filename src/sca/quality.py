@@ -78,6 +78,7 @@ class CheckResult:
 
     @property
     def passed(self) -> bool:
+        """True when no row failed the check."""
         return self.failing_rows == 0
 
 

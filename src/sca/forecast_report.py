@@ -6,6 +6,7 @@ import json
 import platform
 import sys
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -61,7 +62,7 @@ def run(
     items: pd.DataFrame,
     cutoff: str | None,
     sample: bool = False,
-    log=print,
+    log: Callable[[str], None] = print,
     first_full_week: str | None = None,
 ) -> ForecastRun:
     """Select series, backtest every model, pick the champion and produce the final forecast."""

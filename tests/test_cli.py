@@ -1,3 +1,5 @@
+import re
+
 from typer.testing import CliRunner
 
 from sca import pipeline
@@ -6,6 +8,7 @@ from sca.cli import STAGES, app
 runner = CliRunner()
 COMMANDS = [name for name, _, _ in STAGES] + ["all"]
 SPEC_COMMANDS = {"ingest", "quality", "load", "eda", "forecast", "risk", "simulate", "kpis", "review-pack", "all"}
+ANSI = re.compile("\x1b\\[[0-9;]*m")
 
 
 def test_all_spec_commands_registered():
@@ -26,5 +29,6 @@ def test_all_sample_runs_every_stage_end_to_end_without_keys():
 
 
 def test_help_lists_the_review_pack_options():
-    result = runner.invoke(app, ["review-pack", "--help"])
-    assert result.exit_code == 0 and "--no-llm" in result.output and "--month" in result.output
+    result = runner.invoke(app, ["review-pack", "--help"], env={"NO_COLOR": "1", "TERM": "dumb", "COLUMNS": "200"})
+    plain = ANSI.sub("", result.output)  # CI terminals can add colour codes
+    assert result.exit_code == 0 and "--no-llm" in plain and "--month" in plain

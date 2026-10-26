@@ -37,7 +37,9 @@ class LLMClient(Protocol):
 
     name: str
 
-    def generate(self, system: str, user: str) -> str: ...
+    def generate(self, system: str, user: str) -> str:
+        """Return the model's text for a system and user prompt."""
+        ...
 
 
 @dataclass
@@ -49,6 +51,7 @@ class GeminiClient:
     name: str = "gemini"
 
     def generate(self, system: str, user: str) -> str:
+        """Return the model's text for a system and user prompt."""
         from google import genai
         from google.genai import types
 
@@ -70,6 +73,7 @@ class GroqClient:
     name: str = "groq"
 
     def generate(self, system: str, user: str) -> str:
+        """Return the model's text for a system and user prompt."""
         from groq import Groq
 
         out = Groq(api_key=self.api_key).chat.completions.create(

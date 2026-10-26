@@ -100,6 +100,19 @@ def run_all(
         typer.echo(f"Done, but {len(skipped)} stage(s) are not implemented: {', '.join(skipped)}")
 
 
+@app.command(name="results", help="Rebuild reports/RESULTS.md and README.md from the pipeline outputs.")
+def results_cmd() -> None:
+    """Collect every headline number from the outputs of a full run and write RESULTS.md and the README."""
+    from sca import results
+
+    try:
+        v = results.build()
+    except FileNotFoundError as exc:
+        typer.secho(f"Missing output: {exc}. Run `python -m sca all` on the full data first.", err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"results: RESULTS.md and README.md written ({len(v)} numbers collected)")
+
+
 @app.command(name="make-sample", help="Write data/sample/ from the full raw file (maintainers).")
 def make_sample(config: ConfigOpt = None) -> None:
     """Create the small committed sample used by tests and CI."""

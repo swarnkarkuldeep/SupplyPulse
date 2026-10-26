@@ -14,6 +14,7 @@ Design notes
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 
 import numpy as np
@@ -87,7 +88,7 @@ class LeakageError(ValueError):
     """Raised when a forbidden (post-shipping) column reaches the feature matrix."""
 
 
-def assert_no_leakage(columns) -> None:
+def assert_no_leakage(columns: Iterable[str]) -> None:
     """Raise if any forbidden column, or anything derived from one by name, is among ``columns``."""
     bad = sorted(set(columns) & FORBIDDEN_COLUMNS)
     if bad:
@@ -182,10 +183,12 @@ class RareGrouper:
     keep: dict[str, set] | None = None
 
     def fit(self, df: pd.DataFrame, cols: list[str]) -> RareGrouper:
+        """Learn which levels are common enough to keep, from the training data only."""
         self.keep = {c: set(df[c].value_counts()[lambda s: s >= self.min_count].index) for c in cols}
         return self
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Replace rare levels with OTHER."""
         out = df.copy()
         for c, keep in self.keep.items():
             out[c] = out[c].where(out[c].isin(keep), OTHER)
@@ -201,6 +204,7 @@ def lgbm_frame(X: pd.DataFrame, levels: dict[str, list[str]]) -> pd.DataFrame:
 
 
 def logistic_pipeline(c: float, seed: int) -> Pipeline:
+    """One-hot encode categoricals, scale numerics, fit a logistic regression."""
     pre = ColumnTransformer(
         [
             ("cat", OneHotEncoder(handle_unknown="ignore"), CATEGORICAL),
@@ -248,6 +252,7 @@ def expected_cost(m: dict, cost_fn: float, cost_fp: float) -> float:
 
 
 def calibration(y: np.ndarray, p: np.ndarray, bins: int = 10) -> pd.DataFrame:
+    """Observed vs predicted late share in equal-sized bins of the predicted probability."""
     frac, mean = calibration_curve(y, p, n_bins=bins, strategy="quantile")
     return pd.DataFrame({"predicted": mean, "observed": frac})
 

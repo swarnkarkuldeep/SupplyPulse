@@ -24,4 +24,5 @@ jobs:
         run: ruff check .
       - name: Test
         run: pytest
-      # Phase 8: add `python -m sca all --sample --no-llm` once the stages exist.
+      - name: Pipeline on the committed sample (SQLite, no SQL Server, no API keys)
+        run: python -m sca all --sample --no-llm

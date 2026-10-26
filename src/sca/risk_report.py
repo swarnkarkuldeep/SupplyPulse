@@ -55,6 +55,7 @@ def compute_shap(run: rm.RiskRun, n: int, seed: int) -> Shap:
 
 
 def chart_curves(run: rm.RiskRun, fig_dir: Path) -> Path:
+    """ROC and precision-recall curves for the three models on the test set."""
     y = run.split["test"][rm.TARGET].to_numpy()
     fig, axes = plt.subplots(1, 2, figsize=(12, 4.8))
     for m, label in MODEL_LABELS.items():
@@ -78,6 +79,7 @@ def chart_curves(run: rm.RiskRun, fig_dir: Path) -> Path:
 
 
 def chart_calibration(run: rm.RiskRun, fig_dir: Path) -> Path:
+    """Reliability curves for the two real models on the test set."""
     y = run.split["test"][rm.TARGET].to_numpy()
     fig, ax = plt.subplots(figsize=(6.4, 5))
     ax.plot([0, 1], [0, 1], color="#CBD5E1", ls="--", label="Perfectly calibrated")
@@ -97,6 +99,7 @@ def chart_calibration(run: rm.RiskRun, fig_dir: Path) -> Path:
 
 
 def chart_confusion(run: rm.RiskRun, champ: str, fig_dir: Path) -> Path:
+    """Annotated confusion matrix of the champion at its chosen threshold."""
     m = run.metrics[champ]
     mat = np.array([[m["tn"], m["fp"]], [m["fn"], m["tp"]]])
     fig, ax = plt.subplots(figsize=(5.4, 4.6))
@@ -114,6 +117,7 @@ def chart_confusion(run: rm.RiskRun, champ: str, fig_dir: Path) -> Path:
 
 
 def chart_shap_summary(sh: Shap, fig_dir: Path) -> Path:
+    """SHAP beeswarm summary of the LightGBM model."""
     import shap
 
     codes = sh.features.copy()
@@ -128,6 +132,7 @@ def chart_shap_summary(sh: Shap, fig_dir: Path) -> Path:
 
 
 def chart_shap_dependence(sh: Shap, fig_dir: Path, top: int = 3) -> Path:
+    """Dependence plots for the top SHAP drivers."""
     feats = sh.importance["feature"].head(top).tolist()
     fig, axes = plt.subplots(1, top, figsize=(5 * top, 4.4))
     for ax, f in zip(np.atleast_1d(axes), feats, strict=False):
@@ -181,6 +186,7 @@ def min_cell_orders(cell: pd.DataFrame, cap: int = 100) -> int:
 
 
 def chart_drivers(drivers: dict[str, pd.DataFrame], fig_dir: Path) -> Path:
+    """Late-rate heatmap by shipping mode and region."""
     cell = drivers["mode_region"]
     cell = cell[cell["orders"] >= min_cell_orders(cell)]
     pivot = cell.pivot(index="region", columns="shipping_mode", values="late_pct").reindex(
@@ -260,6 +266,7 @@ def _md_table(df: pd.DataFrame, fmt: dict[str, str]) -> list[str]:
 def report_markdown(
     run: rm.RiskRun, champ: str, sh: Shap, drivers: dict, sens: pd.DataFrame, lift: pd.DataFrame, sample: bool
 ) -> str:
+    """Render reports/risk_model_results.md."""
     cfg = run.cfg
     s = run.split
     n = {k: len(v) for k, v in s.items()}

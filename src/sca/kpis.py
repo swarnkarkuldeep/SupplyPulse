@@ -64,6 +64,7 @@ MODEL_TABLE_COLUMNS = {
 
 
 def valid_items(tables: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    """Order items that count in every analysis (cancelled and suspected-fraud excluded)."""
     f = tables["fact_order_items"]
     return f[f["is_valid_order"] == 1]
 

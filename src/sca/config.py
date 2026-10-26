@@ -38,6 +38,8 @@ class Env(BaseSettings):
 
 
 class PathsCfg(BaseModel):
+    """Input and output locations (config.yaml `paths:`)."""
+
     raw_dir: str = "data/raw"
     processed_dir: str = "data/processed"
     sample_dir: str = "data/sample"
@@ -47,11 +49,15 @@ class PathsCfg(BaseModel):
 
 
 class SampleCfg(BaseModel):
+    """How data/sample/ is drawn (config.yaml `sample:`)."""
+
     rows: int = 2500
     stratify_by: list[str] = Field(default_factory=lambda: ["market", "shipping_mode"])
 
 
 class ForecastCfg(BaseModel):
+    """Forecasting settings (config.yaml `forecast:`)."""
+
     top_n_categories: int = 10
     horizon_weeks: int = 8
     final_horizon_weeks: int = 12
@@ -92,6 +98,8 @@ class ForecastCfg(BaseModel):
 
 
 class RiskCfg(BaseModel):
+    """Late-delivery model settings (config.yaml `risk:`)."""
+
     test_fraction: float = 0.2
     cost_false_negative: float = 1.0
     cost_false_positive: float = 1.0
@@ -116,6 +124,8 @@ class RiskCfg(BaseModel):
 
 
 class SimulationCfg(BaseModel):
+    """Inventory simulation settings and assumptions (config.yaml `simulation:`)."""
+
     n_sims: int = 10_000
     horizon_weeks: int = 52
     review_period_weeks: int = 1
@@ -134,6 +144,8 @@ class SimulationCfg(BaseModel):
 
 
 class ReviewPackCfg(BaseModel):
+    """Review pack settings (config.yaml `review_pack:`)."""
+
     top_drivers: int = 5
 
 
@@ -163,6 +175,7 @@ class RunPaths:
 
     @property
     def figures_dir(self) -> Path:
+        """Where charts for this run are written."""
         return self.reports_dir / "figures"
 
 
