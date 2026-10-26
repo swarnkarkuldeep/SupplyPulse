@@ -137,6 +137,20 @@ def stage_risk(ctx: Context) -> str:
     return f"champion {out['champion']}, test ROC-AUC {out['roc_auc']:.3f}, PR-AUC {out['pr_auc']:.3f}"
 
 
+def stage_simulate(ctx: Context) -> str:
+    """Monte Carlo inventory simulation on top of the Phase 3 forecast."""
+    from sca import simulation_report as sr
+
+    tables = ingest.read_processed(ctx.paths.processed_dir)
+    run = sr.run(ctx.cfg, tables, ctx.paths.processed_dir)
+    sr.write_outputs(run, ctx.paths)
+    ensure_database(ctx.env)
+    engine = get_engine(ctx.env)
+    run.results.to_sql("fct_simulation_results", engine, if_exists="replace", index=False)
+    run.recs.to_sql("fct_simulation_recommendations", engine, if_exists="replace", index=False)
+    return f"{len(run.models)} categories x {run.results['safety_stock'].nunique()} stock levels, {run.seconds:.0f}s"
+
+
 # command -> function. Commands missing here are still stubs (see cli.STAGES).
 IMPLEMENTED: dict[str, Callable[[Context], str]] = {
     "ingest": stage_ingest,
@@ -145,4 +159,5 @@ IMPLEMENTED: dict[str, Callable[[Context], str]] = {
     "eda": stage_eda,
     "forecast": stage_forecast,
     "risk": stage_risk,
+    "simulate": stage_simulate,
 }

@@ -107,6 +107,8 @@ EXTRA_TABLES = {
     "fct_forecast": "forecast/fct_forecast.parquet",
     "fct_late_risk_scores": "risk/fct_late_risk_scores.parquet",
     "fct_shap_drivers": "risk/fct_shap_drivers.parquet",
+    "fct_simulation_results": "simulation/fct_simulation_results.parquet",
+    "fct_simulation_recommendations": "simulation/fct_simulation_recommendations.parquet",
 }
 
 

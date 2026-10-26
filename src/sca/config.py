@@ -124,6 +124,13 @@ class SimulationCfg(BaseModel):
     holding_cost_pct_per_week: float = 0.005
     unit_cost_proxy_pct_of_price: float = 0.6
     service_levels: list[float] = Field(default_factory=lambda: [0.90, 0.95, 0.98, 0.99])
+    z_grid: list[float] = Field(
+        default_factory=lambda: [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0, 3.5, 4.0]
+    )
+    recommend_from_service: float = (
+        0.90  # recommendation compares the cheapest stock reaching this simulated service...
+    )
+    recommend_to_service: float = 0.98  # ...with the cheapest stock reaching this one
 
 
 class ReviewPackCfg(BaseModel):
