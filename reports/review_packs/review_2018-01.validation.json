@@ -1,14 +1,36 @@
 {
   "period": "2018-01",
-  "mode": "template",
-  "provider": null,
-  "reason": "--no-llm requested",
+  "mode": "llm",
+  "provider": "groq",
+  "reason": "",
   "attempts": [
     {
       "attempt": 1,
-      "provider": "template",
+      "provider": "gemini",
+      "ok": false,
+      "numbers_checked": 0,
+      "offending_numbers": [],
+      "unknown_fact_ids": [],
+      "uncited_lines": [],
+      "error": "ClientError: 404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash is no longer available to new users. Please update your code to use models/gemini-3.8-flash for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/get-started).', 'status': 'NOT_FOUND'}}"
+    },
+    {
+      "attempt": 1,
+      "provider": "groq",
+      "ok": false,
+      "numbers_checked": 32,
+      "offending_numbers": [
+        "41%"
+      ],
+      "unknown_fact_ids": [],
+      "uncited_lines": [],
+      "error": null
+    },
+    {
+      "attempt": 2,
+      "provider": "groq",
       "ok": true,
-      "numbers_checked": 39,
+      "numbers_checked": 31,
       "offending_numbers": [],
       "unknown_fact_ids": [],
       "uncited_lines": [],
@@ -29,15 +51,8 @@
     "F11",
     "F12",
     "F13",
-    "F14",
-    "F15",
     "F16",
-    "F17",
-    "F18",
     "F19",
-    "F20",
-    "F21",
-    "F22",
     "F23"
   ]
 }

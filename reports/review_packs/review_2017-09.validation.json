@@ -2,10 +2,44 @@
   "period": "2017-09",
   "mode": "template",
   "provider": null,
-  "reason": "--no-llm requested",
+  "reason": "groq output failed validation twice",
   "attempts": [
     {
       "attempt": 1,
+      "provider": "gemini",
+      "ok": false,
+      "numbers_checked": 0,
+      "offending_numbers": [],
+      "unknown_fact_ids": [],
+      "uncited_lines": [],
+      "error": "ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}"
+    },
+    {
+      "attempt": 1,
+      "provider": "groq",
+      "ok": false,
+      "numbers_checked": 43,
+      "offending_numbers": [
+        "$126,688.11"
+      ],
+      "unknown_fact_ids": [],
+      "uncited_lines": [],
+      "error": null
+    },
+    {
+      "attempt": 2,
+      "provider": "groq",
+      "ok": false,
+      "numbers_checked": 34,
+      "offending_numbers": [
+        "41%"
+      ],
+      "unknown_fact_ids": [],
+      "uncited_lines": [],
+      "error": null
+    },
+    {
+      "attempt": 4,
       "provider": "template",
       "ok": true,
       "numbers_checked": 37,
