@@ -100,3 +100,18 @@ def load_tables(engine: Engine, tables: dict[str, pd.DataFrame], root: Path | No
         raise LoadError(f"row count mismatch (loaded, expected): {mismatched}")
     create_views(engine, root)
     return counts
+
+
+# Phase outputs saved as parquet under data/processed, loaded as extra tables when present.
+EXTRA_TABLES = {"fct_forecast": "forecast/fct_forecast.parquet"}
+
+
+def load_extra_tables(engine: Engine, processed_dir: Path) -> list[str]:
+    """Load model-output tables (e.g. fct_forecast) that earlier stages wrote, if they exist."""
+    loaded = []
+    for table, rel in EXTRA_TABLES.items():
+        path = processed_dir / rel
+        if path.exists():
+            pd.read_parquet(path).to_sql(table, engine, if_exists="replace", index=False, chunksize=CHUNK_ROWS)
+            loaded.append(table)
+    return loaded

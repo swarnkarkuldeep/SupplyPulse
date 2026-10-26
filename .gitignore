@@ -30,3 +30,4 @@ htmlcov/
 # misc
 .remember/
 .DS_Store
+*.zip

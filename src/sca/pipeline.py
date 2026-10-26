@@ -70,7 +70,9 @@ def stage_load(ctx: Context) -> str:
     ensure_database(ctx.env)
     engine = get_engine(ctx.env)
     counts = load.load_tables(engine, tables)
-    return f"loaded to {engine.url.render_as_string(hide_password=True)}: {counts}"
+    extra = load.load_extra_tables(engine, ctx.paths.processed_dir)
+    note = f"; model outputs: {', '.join(extra)}" if extra else ""
+    return f"loaded to {engine.url.render_as_string(hide_password=True)}: {counts}{note}"
 
 
 def stage_eda(ctx: Context) -> str:
@@ -90,10 +92,32 @@ def stage_eda(ctx: Context) -> str:
     return f"{len(findings)} findings, regression n = {model.n:,}"
 
 
+def stage_forecast(ctx: Context) -> str:
+    """Backtest the models, pick a champion, write the 12-week forecast and fct_forecast."""
+    from sca import forecast_report as fr
+
+    tables = ingest.read_processed(ctx.paths.processed_dir)
+    cutoff = (_read_tail(ctx) or {}).get("last_normal_date")
+    fact = tables["fact_order_items"].merge(
+        tables["dim_category"][["category_key", "category_name"]], on="category_key"
+    )
+    items = fact.loc[fact["is_valid_order"] == 1, ["category_name", "order_week", "quantity"]]
+    run = fr.run(ctx.cfg, items, cutoff, ctx.sample, log=print)
+    fr.write_outputs(run, cutoff, ctx.paths, ctx.sample)
+    ensure_database(ctx.env)
+    engine = get_engine(ctx.env)
+    run.fct.to_sql("fct_forecast", engine, if_exists="replace", index=False)
+    return (
+        f"champion {run.champion}, {len(run.categories)} categories, "
+        f"WAPE {run.metrics['overall'].set_index('model').loc[run.champion, 'wape']:.1%}"
+    )
+
+
 # command -> function. Commands missing here are still stubs (see cli.STAGES).
 IMPLEMENTED: dict[str, Callable[[Context], str]] = {
     "ingest": stage_ingest,
     "quality": stage_quality,
     "load": stage_load,
     "eda": stage_eda,
+    "forecast": stage_forecast,
 }

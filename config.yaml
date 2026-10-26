@@ -23,6 +23,18 @@ forecast:
   tail_baseline_weeks: 26     # tail detection: baseline window in weeks
   tail_drop_ratio: 0.6        # a week below 60% of the baseline median (and all later weeks) is the tail
   cutoff_override: null       # "YYYY-MM-DD" to force the last usable date instead of auto-detecting
+  models: [seasonal_naive, moving_average, sarima, prophet, lightgbm]
+  sample_models: [seasonal_naive, moving_average, lightgbm]   # --sample runs: fast, CI-friendly
+  sample_folds: 2
+  min_history_weeks: 104      # weeks needed before the first backtest origin
+  max_zero_week_share: 0.05   # series with more zero weeks than this are too sparse to forecast
+  moving_average_window: 8
+  sarima_orders: [[0, 0, 0], [1, 0, 0], [1, 0, 1], [0, 1, 1], [1, 1, 1], [2, 1, 0]]  # (p, d, q) grid
+  sarima_fourier_k: [0, 2]    # Fourier pairs for yearly seasonality; chosen by AIC with the order
+  lgbm_lags: [1, 2, 3, 4, 8, 13]
+  lgbm_params: {n_estimators: 300, learning_rate: 0.05, num_leaves: 15, min_child_samples: 20,
+                subsample: 0.8, subsample_freq: 1, colsample_bytree: 0.8}
+  n_jobs: 1                   # parallel series fits for SARIMA/Prophet (use 2 on Colab)
 
 risk:
   test_fraction: 0.2          # time-based: most recent orders

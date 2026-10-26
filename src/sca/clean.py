@@ -244,12 +244,14 @@ def detect_tail_cutoff(
     baseline_weeks: int = 26,
     drop_ratio: float = 0.6,
     min_tail_weeks: int = 4,
+    tail_share: float = 0.8,
 ) -> dict:
     """Find where weekly order volume permanently collapses.
 
     ``order_weeks`` holds one Monday-start week per order item. A week is abnormal when its
     count is below ``drop_ratio`` x the median of the ``baseline_weeks`` weeks before it, and
-    every later week is also below that level, for at least ``min_tail_weeks`` weeks. The
+    at least ``tail_share`` of the weeks from there on are also below that level, over at least
+    ``min_tail_weeks`` weeks. The
     final week is dropped from consideration when it holds under half the preceding week (a
     partial week).
 
@@ -265,7 +267,10 @@ def detect_tail_cutoff(
     for i in range(baseline_weeks // 2, len(counts) - min_tail_weeks + 1):
         # Baseline uses only weeks before the candidate, so the tail cannot pull it down.
         base = counts.iloc[max(0, i - baseline_weeks) : i].median()
-        if (counts.iloc[i:] < drop_ratio * base).all():
+        low = counts.iloc[i:] < drop_ratio * base
+        # The candidate week itself must be low, and the tail must be low almost throughout
+        # (tolerating a few noisy weeks, which small samples have).
+        if low.iloc[0] and low.mean() >= tail_share:
             tail_start = counts.index[i]
             break
     if tail_start is None:

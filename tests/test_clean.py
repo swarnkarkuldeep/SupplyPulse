@@ -116,3 +116,14 @@ def test_duplicate_category_names_are_disambiguated(raw_sample):
     twins = flat[flat["category_name"].str.startswith("Twin")]
     assert twins["category_name"].nunique() == twins["category_id"].nunique() >= 2
     assert any("Twin" in note for note in log.value_fixes)
+
+
+def test_tail_detected_despite_noisy_weeks():
+    """Small samples have noisy tails: a few tail weeks may exceed the threshold."""
+    rng = np.random.default_rng(1)
+    normal = rng.poisson(15, 60)
+    tail = rng.poisson(6, 17)
+    res = cl.detect_tail_cutoff(_weekly(list(np.concatenate([normal, tail]))))
+    first_tail = pd.Timestamp("2016-01-04") + pd.Timedelta(weeks=60)
+    assert res["abnormal_tail"]
+    assert abs((pd.Timestamp(res["first_abnormal_week"]) - first_tail).days) <= 14

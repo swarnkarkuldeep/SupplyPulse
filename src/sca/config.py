@@ -63,6 +63,32 @@ class ForecastCfg(BaseModel):
     tail_baseline_weeks: int = 26
     tail_drop_ratio: float = 0.6
     cutoff_override: str | None = None  # "YYYY-MM-DD" to force the last usable date
+    # Phase 3 settings
+    models: list[str] = Field(
+        default_factory=lambda: ["seasonal_naive", "moving_average", "sarima", "prophet", "lightgbm"]
+    )
+    sample_models: list[str] = Field(default_factory=lambda: ["seasonal_naive", "moving_average", "lightgbm"])
+    sample_folds: int = 2
+    min_history_weeks: int = 104  # a series needs this many weeks before the first backtest origin
+    max_zero_week_share: float = 0.05  # a series with more zero weeks than this is too sparse to forecast
+    moving_average_window: int = 8
+    sarima_orders: list[list[int]] = Field(
+        default_factory=lambda: [[0, 0, 0], [1, 0, 0], [1, 0, 1], [0, 1, 1], [1, 1, 1], [2, 1, 0]]
+    )
+    sarima_fourier_k: list[int] = Field(default_factory=lambda: [0, 2])
+    lgbm_lags: list[int] = Field(default_factory=lambda: [1, 2, 3, 4, 8, 13])
+    lgbm_params: dict = Field(
+        default_factory=lambda: {
+            "n_estimators": 300,
+            "learning_rate": 0.05,
+            "num_leaves": 15,
+            "min_child_samples": 20,
+            "subsample": 0.8,
+            "subsample_freq": 1,
+            "colsample_bytree": 0.8,
+        }
+    )
+    n_jobs: int = 1
 
 
 class RiskCfg(BaseModel):
