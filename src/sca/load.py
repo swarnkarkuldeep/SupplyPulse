@@ -89,9 +89,7 @@ def load_tables(engine: Engine, tables: dict[str, pd.DataFrame], root: Path | No
     create_schema(engine, root)
     truncate_all(engine)
     for name in LOAD_ORDER:
-        prepare_for_sql(name, tables[name]).to_sql(
-            name, engine, if_exists="append", index=False, chunksize=CHUNK_ROWS
-        )
+        prepare_for_sql(name, tables[name]).to_sql(name, engine, if_exists="append", index=False, chunksize=CHUNK_ROWS)
         log.info("loaded %s (%s rows)", name, f"{len(tables[name]):,}")
     counts = {}
     with engine.connect() as conn:

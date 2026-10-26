@@ -163,8 +163,7 @@ def profile_markdown(p: dict, enc: dict, tail: dict, figures: dict[str, str], ro
     lines += ["| Column | Mean | Std | Min | Median | Max |", "|---|---:|---:|---:|---:|---:|"]
     for name, r in num.iterrows():
         lines.append(
-            f"| {name} | {r['mean']:,.2f} | {r['std']:,.2f} | {r['min']:,.2f} | "
-            f"{r['50%']:,.2f} | {r['max']:,.2f} |"
+            f"| {name} | {r['mean']:,.2f} | {r['std']:,.2f} | {r['min']:,.2f} | {r['50%']:,.2f} | {r['max']:,.2f} |"
         )
     return "\n".join(lines) + "\n"
 
@@ -214,26 +213,18 @@ def run_ingest(cfg: Config, paths: RunPaths, sample: bool = False) -> dict:
     prof = profile_raw(raw)
 
     flat, clog = cl.clean_orders(raw)
-    tail = cl.detect_tail_cutoff(
-        flat["order_week"], cfg.forecast.tail_baseline_weeks, cfg.forecast.tail_drop_ratio
-    )
+    tail = cl.detect_tail_cutoff(flat["order_week"], cfg.forecast.tail_baseline_weeks, cfg.forecast.tail_drop_ratio)
     if cfg.forecast.cutoff_override:
         tail = {**tail, "last_normal_date": cfg.forecast.cutoff_override, "overridden": True}
     tables = cl.build_star_schema(flat)
 
     figs = {
-        "monthly": plot_monthly_orders(
-            prof["order_ts"], tail, paths.figures_dir / "profile_monthly_orders.png"
-        ),
+        "monthly": plot_monthly_orders(prof["order_ts"], tail, paths.figures_dir / "profile_monthly_orders.png"),
         "dist": plot_distributions(raw, paths.figures_dir / "profile_distributions.png"),
     }
     rel = {k: f"figures/{v.name}" for k, v in figs.items()}
-    note = (
-        "> **Sample run.** This profile describes `data/sample/`, not the full dataset.\n" if sample else ""
-    )
-    (paths.reports_dir / "data_profile.md").write_text(
-        profile_markdown(prof, enc, tail, rel, note), encoding="utf-8"
-    )
+    note = "> **Sample run.** This profile describes `data/sample/`, not the full dataset.\n" if sample else ""
+    (paths.reports_dir / "data_profile.md").write_text(profile_markdown(prof, enc, tail, rel, note), encoding="utf-8")
     (paths.reports_dir / "cleaning_log.md").write_text(cl.cleaning_log_markdown(clog, tail), encoding="utf-8")
     for name, df in tables.items():
         df.to_parquet(paths.processed_dir / f"{name}.parquet", index=False)

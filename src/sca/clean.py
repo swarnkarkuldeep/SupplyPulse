@@ -233,9 +233,7 @@ def clean_orders(raw: pd.DataFrame) -> tuple[pd.DataFrame, CleaningLog]:
         log.row_filters.append(("Duplicate order_item_id", int(dup_ids.sum())))
     df = derive_fields(df, log)
     n_excl = int((df["is_valid_order"] == 0).sum())
-    log.row_filters.append(
-        (f"Flagged (kept in the data, is_valid_order = 0): {', '.join(EXCLUDED_STATUSES)}", n_excl)
-    )
+    log.row_filters.append((f"Flagged (kept in the data, is_valid_order = 0): {', '.join(EXCLUDED_STATUSES)}", n_excl))
     df = df.sort_values("order_item_id").reset_index(drop=True)
     log.rows_clean = len(df)
     return df, log
@@ -317,9 +315,7 @@ def _surrogate(df: pd.DataFrame, natural: list[str], key: str) -> pd.DataFrame:
 
 def build_star_schema(df: pd.DataFrame) -> dict[str, pd.DataFrame]:
     """Split the cleaned flat table into fact_order_items and its dimensions."""
-    dim_category = _surrogate(
-        df, ["category_id", "category_name", "department_id", "department_name"], "category_key"
-    )
+    dim_category = _surrogate(df, ["category_id", "category_name", "department_id", "department_name"], "category_key")
     prod = (
         df[["product_card_id", "product_name", "category_id", "unit_price"]]
         .drop_duplicates(subset="product_card_id")

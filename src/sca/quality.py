@@ -199,9 +199,7 @@ def _ck_fact(t: dict[str, pd.DataFrame]) -> list[CheckResult]:
     disc_gap = (f["discount_amount"] - f["discount_rate"] * f["gross_sales"]).abs()
     late_from_days = (f["shipping_days_real"] > f["shipping_days_scheduled"]).astype(int)
     pr_gap = (f["profit_ratio"] - f["profit"] / f["net_sales"]).abs()
-    day_gap = (
-        (f["ship_ts"].dt.normalize() - f["order_ts"].dt.normalize()).dt.days - f["shipping_days_real"]
-    ).abs()
+    day_gap = ((f["ship_ts"].dt.normalize() - f["order_ts"].dt.normalize()).dt.days - f["shipping_days_real"]).abs()
     dup_cols = [c for c in f.columns if c != "order_item_id"]
     grouped = f.groupby("order_id")[ORDER_LEVEL_COLUMNS].transform("nunique")
     checks = [
@@ -323,8 +321,7 @@ def quality_markdown(results: list[CheckResult], title_note: str = "") -> str:
         status = "PASS" if r.passed else ("FAIL" if r.severity == ERROR else "WARN")
         keys = ", ".join(map(str, r.sample_keys)) or "-"
         lines.append(
-            f"| {status} | {r.severity} | `{r.name}` | {r.table} | {r.failing_rows:,} "
-            f"of {r.total_rows:,} | {keys} |"
+            f"| {status} | {r.severity} | `{r.name}` | {r.table} | {r.failing_rows:,} of {r.total_rows:,} | {keys} |"
         )
     lines += ["", "## Check descriptions", ""]
     lines += [f"- `{r.name}`: {r.description}" for r in results]
@@ -343,9 +340,7 @@ def write_reports(results: list[CheckResult], reports_dir: Path, note: str = "")
         "failing_warnings": len(failures(results, WARN)),
         "checks": [{**asdict(r), "passed": r.passed} for r in results],
     }
-    (reports_dir / "data_quality_report.json").write_text(
-        json.dumps(payload, indent=2, default=str), encoding="utf-8"
-    )
+    (reports_dir / "data_quality_report.json").write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
 
 
 def enforce(results: list[CheckResult]) -> None:

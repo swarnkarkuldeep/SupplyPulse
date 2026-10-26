@@ -63,9 +63,7 @@ def ensure_database(env: Env) -> None:
     """
     if env.db_backend != "sqlserver" or env.database_url:
         return
-    master = create_engine(
-        build_url(env.model_copy(update={"db_name": "master"})), isolation_level="AUTOCOMMIT"
-    )
+    master = create_engine(build_url(env.model_copy(update={"db_name": "master"})), isolation_level="AUTOCOMMIT")
     with master.connect() as conn:
         conn.exec_driver_sql(f"IF DB_ID(N'{env.db_name}') IS NULL CREATE DATABASE [{env.db_name}]")
     master.dispose()

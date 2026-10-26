@@ -73,9 +73,27 @@ def stage_load(ctx: Context) -> str:
     return f"loaded to {engine.url.render_as_string(hide_password=True)}: {counts}"
 
 
+def stage_eda(ctx: Context) -> str:
+    """EDA charts, profitability regression and reports/eda_findings.md."""
+    from sca import eda
+
+    tables = ingest.read_processed(ctx.paths.processed_dir)
+    tail = _read_tail(ctx) or {}
+    cutoff = tail.get("last_normal_date")
+    findings, model = eda.run_all(eda.build_frame(tables), cutoff, ctx.paths.figures_dir)
+    note = (
+        "> **Sample run.** Computed on `data/sample/`; numbers are not the full-data results.\n" if ctx.sample else ""
+    )
+    (ctx.paths.reports_dir / "eda_findings.md").write_text(
+        eda.findings_markdown(findings, model, note), encoding="utf-8"
+    )
+    return f"{len(findings)} findings, regression n = {model.n:,}"
+
+
 # command -> function. Commands missing here are still stubs (see cli.STAGES).
 IMPLEMENTED: dict[str, Callable[[Context], str]] = {
     "ingest": stage_ingest,
     "quality": stage_quality,
     "load": stage_load,
+    "eda": stage_eda,
 }

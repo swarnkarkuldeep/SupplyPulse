@@ -45,9 +45,7 @@ def test_views_exist_and_reconcile_with_fact(engine, tables):
     assert _count(engine, "SELECT SUM(revenue) FROM vw_kpi_monthly") == pytest.approx(valid_net)
     assert _count(engine, "SELECT SUM(units) FROM vw_weekly_demand") == valid_units
     assert _count(engine, "SELECT SUM(sales) FROM vw_margin_analysis") == pytest.approx(valid_net)
-    valid_orders = _count(
-        engine, "SELECT COUNT(DISTINCT order_id) FROM fact_order_items WHERE is_valid_order = 1"
-    )
+    valid_orders = _count(engine, "SELECT COUNT(DISTINCT order_id) FROM fact_order_items WHERE is_valid_order = 1")
     assert _count(engine, "SELECT SUM(orders) FROM vw_delivery_performance") == valid_orders
     assert _count(engine, "SELECT SUM(orders) FROM vw_kpi_monthly") == valid_orders
 
